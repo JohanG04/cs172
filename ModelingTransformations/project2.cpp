@@ -31,8 +31,19 @@ const GLfloat mat_diffuse[]    = { 0.8f, 0.8f, 0.8f, 1.0f };
 const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
-int cuberot = 0;
-float cubeSize = 1;
+
+int cubeRot = 0;        //cube rotation in degrees
+float cubeSize = 1;     //cube Size
+int teapotRot = 0;        //teapot rotation in degrees
+float teapotSize = 1;     //teapot Size
+int sphereRot = 0;        //sphere rotation in degrees
+float sphereSize = 1;     //sphere Size
+
+//is model able to rotate and scale
+bool cube = false;
+bool teapot = false;
+bool sphere = false;
+
 
 /* GLUT callback Handlers */
 
@@ -63,26 +74,32 @@ static void display(void)
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
 
-    // your code here
+    // Cube
     glPushMatrix();
     glColor3d(0, 1, 0);
     glTranslatef(4.0, 0.0, -2.0);
-    glRotatef(cuberot, 0, 1, 0);
+    glRotatef(cubeRot, 0, 1, 0);
     glScalef(cubeSize, cubeSize, cubeSize);
     glutSolidCube(2.0);
     glPopMatrix();
 
+
+    //Teapot
     glPushMatrix();
     glColor3d(1, 0, 0);
     glTranslatef(0.0, 0.0, -3.0);
-    glRotatef(5, 0, 1, 0);
-    glScalef(1, 1, 1);
+    glRotatef(teapotRot, 0, 1, 0);
+    glScalef(teapotSize, teapotSize, teapotSize);
     glutSolidTeapot(1.5);
     glPopMatrix();
 
+
+    //Sphere
     glPushMatrix();
     glColor3d(0, 0, 1);
     glTranslatef(-3.5, 0, -1);
+    glRotatef(sphereRot, 0, 1, 0);
+    glScalef(sphereSize, sphereSize, sphereSize);
     glutSolidSphere(1.3, 15, 15);
     glPopMatrix();
 
@@ -93,9 +110,23 @@ static void display(void)
 
 static void key(unsigned char key, int x, int y)
 {
+    //set all mesh scale and rotation unable to be modified
+    cube = false;
+    teapot = false;
+    sphere = false;
+
     switch (key)
     {
         case 27 :
+        case 'c':
+            cube = true;
+            break;
+        case 't':
+            teapot = true;
+            break;
+        case 's':
+            sphere = true;
+            break;
         case 'q':
             exit(0);
             break;
@@ -104,21 +135,39 @@ static void key(unsigned char key, int x, int y)
 
 void Specialkeys(int key, int x, int y)
 {
+    //local vars to store scale and rot differences due to key input
+    float scale = 0.0;
+    int rot = 0;
     switch(key)
     {
     case GLUT_KEY_UP:
-        cubeSize += .5;
+        scale = .5;
         break;
     case GLUT_KEY_DOWN:
-        cubeSize -= .5;
+        scale = -.5;
         break;
     case GLUT_KEY_RIGHT:
-        cuberot += 5;
+        rot = 5;
         break;
     case GLUT_KEY_LEFT:
-        cuberot -= 5;
+        rot = -5;
         break;
    }
+
+   //add differences to selected mesh scale/rotation
+   if (cube){
+        cubeSize += scale;
+        cubeRot += rot;
+   }
+   else if (teapot){
+        teapotSize += scale;
+        teapotRot += rot;
+   }
+   else if (sphere){
+        sphereSize += scale;
+        sphereRot += rot;
+   }
+
   glutPostRedisplay();
 }
 
