@@ -1,3 +1,9 @@
+/*
+Name: Johan Gonzalez Rios
+ID: 301301300
+Class: CSCI 172
+ProjectName: Project02 - Modeling Transformations
+*/
 
 #include <string.h>
 
@@ -25,6 +31,8 @@ const GLfloat mat_diffuse[]    = { 0.8f, 0.8f, 0.8f, 1.0f };
 const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
+int cuberot = 0;
+float cubeSize = 1;
 
 /* GLUT callback Handlers */
 
@@ -56,6 +64,29 @@ static void display(void)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
 
     // your code here
+    glPushMatrix();
+    glColor3d(0, 1, 0);
+    glTranslatef(4.0, 0.0, -2.0);
+    glRotatef(cuberot, 0, 1, 0);
+    glScalef(cubeSize, cubeSize, cubeSize);
+    glutSolidCube(2.0);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3d(1, 0, 0);
+    glTranslatef(0.0, 0.0, -3.0);
+    glRotatef(5, 0, 1, 0);
+    glScalef(1, 1, 1);
+    glutSolidTeapot(1.5);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3d(0, 0, 1);
+    glTranslatef(-3.5, 0, -1);
+    glutSolidSphere(1.3, 15, 15);
+    glPopMatrix();
+
+
 
     glutSwapBuffers();
 }
@@ -76,7 +107,17 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-    break;
+        cubeSize += .5;
+        break;
+    case GLUT_KEY_DOWN:
+        cubeSize -= .5;
+        break;
+    case GLUT_KEY_RIGHT:
+        cuberot += 5;
+        break;
+    case GLUT_KEY_LEFT:
+        cuberot -= 5;
+        break;
    }
   glutPostRedisplay();
 }
@@ -105,12 +146,13 @@ static void init(void)
     glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
 
     glEnable(GL_LIGHT0);
     glEnable(GL_NORMALIZE);
     glEnable(GL_LIGHTING);
+
 }
 
 
