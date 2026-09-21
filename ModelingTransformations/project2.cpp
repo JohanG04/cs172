@@ -127,6 +127,9 @@ static void key(unsigned char key, int x, int y)
         case 's':
             sphere = true;
             break;
+        case 'w':
+            WireFrame = !WireFrame;
+            break;
         case 'q':
             exit(0);
             break;
