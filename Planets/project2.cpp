@@ -66,7 +66,7 @@ static void display(void)
 
     // your code here
 
-    glColor3d(.01, .01, 0);
+    glColor3d(.1, .1, 0);
     glutSolidSphere(2.0, 16, 16);
 
     glutSwapBuffers();
