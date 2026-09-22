@@ -128,8 +128,6 @@ static void display(void)
     glutSolidSphere(.1, 10, 10);
     glPopMatrix();
 
-    glTranslated(3, 3, 3);
-    glPopMatrix();
 
     glutSwapBuffers();
 }
