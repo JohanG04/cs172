@@ -21,6 +21,7 @@ Project Name: Project #3 - Planets
 using namespace std;
 
 bool WireFrame= false;
+bool start = false;
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -32,7 +33,37 @@ const GLfloat mat_diffuse[]    = { 0.8f, 0.8f, 0.8f, 1.0f };
 const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
+class planet{
+    public:
+        double x, y, z;
+        double rot = 0.0;
+        planet(double x, double y, double z){
+            this->x = x;
+            this->y = y;
+            this->z = z;
 
+        }
+
+        void rotate_relative(double rotation, double px, double pz);
+};
+
+void planet::rotate_relative(double rotation, double px, double pz){
+    x -= px;
+    z -= pz;
+    double old_x = x;
+    x = (x * cos(rotation) - z * sin(rotation));
+    z = (old_x * sin(rotation) + z * cos(rotation));
+
+    x += px;
+    z += pz;
+    return;
+}
+
+//planets
+planet sun = planet(0, 0, 0);
+planet earth = planet(3, 0, 0);
+planet moon = planet(3.8, 0, 0);
+planet planet_B = planet(5, 0, 0);
 
 
 /* GLUT callback Handlers */
@@ -65,9 +96,40 @@ static void display(void)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
 
     // your code here
+    if (start){
+        planet_B.rotate_relative(.001, sun.x, sun.z);
+        earth.rotate_relative(.0015, sun.x, sun.z);
+        moon.rotate_relative(.0015, sun.x, sun.z);
+        moon.rotate_relative(.001, earth.x, earth.z);
+    }
 
-    glColor3d(.1, .1, 0);
-    glutSolidSphere(2.0, 16, 16);
+    //SUN
+    glPushMatrix();
+    glColor3d(1, .6, 0);
+    glTranslatef(sun.x, sun.y, sun.z);
+    glutSolidSphere(1.0, 16, 16);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3d(1, 0 , 0);
+    glTranslatef(planet_B.x, planet_B.y, planet_B.z);
+    glutSolidSphere(.5, 16, 16);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3d(0, .4 , 1);
+    glTranslatef(earth.x, earth.y, earth.z);
+    glutSolidSphere(.4, 16, 16);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3d(.5, .5, .5);
+    glTranslatef(moon.x, moon.y, moon.z);
+    glutSolidSphere(.1, 10, 10);
+    glPopMatrix();
+
+    glTranslated(3, 3, 3);
+    glPopMatrix();
 
     glutSwapBuffers();
 }
@@ -76,7 +138,14 @@ static void key(unsigned char key, int x, int y)
 {
     switch (key)
     {
+        case ' ':
+            start = !start;
+            break;
+        case 'w':
+            WireFrame = !WireFrame;
+            break;
         case 27 :
+            break;
         case 'q':
             exit(0);
             break;
@@ -88,7 +157,16 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-    break;
+        sun.z += .5;
+        earth.z += .5;
+        moon.z += .5;
+        planet_B.z += .5;
+        break;
+    case GLUT_KEY_DOWN:
+        sun.z -= .5;
+        earth.z -= .5;
+        planet_B.z -= .5;
+        break;
    }
   glutPostRedisplay();
 }
@@ -124,7 +202,6 @@ static void init(void)
     glEnable(GL_NORMALIZE);
     glEnable(GL_LIGHTING);
 }
-
 
 /* Program entry point */
 
