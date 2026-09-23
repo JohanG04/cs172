@@ -36,15 +36,19 @@ const GLfloat high_shininess[] = { 100.0f };
 class planet{
     public:
         double x, y, z;
+        double size;
         double rot = 0.0;
-        planet(double x, double y, double z){
+        planet(double x, double y, double z, double s){
             this->x = x;
             this->y = y;
             this->z = z;
-
+            this->size = s;
         }
 
         void rotate_relative(double rotation, double px, double pz);
+
+        void change_scale(double new_scale);
+
 };
 
 void planet::rotate_relative(double rotation, double px, double pz){
@@ -59,11 +63,18 @@ void planet::rotate_relative(double rotation, double px, double pz){
     return;
 }
 
+void planet::change_scale(double scale){
+    size *= scale;
+    x *= scale;
+    y *= scale;
+    z *= scale;
+}
+
 //planets
-planet sun = planet(0, 0, 0);
-planet earth = planet(3, 0, 0);
-planet moon = planet(3.8, 0, 0);
-planet planet_B = planet(5, 0, 0);
+planet sun = planet(0, 0, 0, 1.0);
+planet earth = planet(3, 0, 0, .4);
+planet moon = planet(3.8, 0, 0, .1);
+planet planet_B = planet(5, 0, 0, .5);
 
 
 /* GLUT callback Handlers */
@@ -98,6 +109,7 @@ static void display(void)
     // your code here
     if (start){
         planet_B.rotate_relative(.001, sun.x, sun.z);
+        planet_B.rot += .02;
         earth.rotate_relative(.0015, sun.x, sun.z);
         moon.rotate_relative(.0015, sun.x, sun.z);
         moon.rotate_relative(.001, earth.x, earth.z);
@@ -107,25 +119,26 @@ static void display(void)
     glPushMatrix();
     glColor3d(1, .6, 0);
     glTranslatef(sun.x, sun.y, sun.z);
-    glutSolidSphere(1.0, 16, 16);
+    glutSolidSphere(sun.size, 16, 16);
     glPopMatrix();
 
     glPushMatrix();
     glColor3d(1, 0 , 0);
     glTranslatef(planet_B.x, planet_B.y, planet_B.z);
-    glutSolidSphere(.5, 16, 16);
+    glRotatef(planet_B.rot, 1, 1, 0);
+    glutSolidSphere(planet_B.size, 16, 16);
     glPopMatrix();
 
     glPushMatrix();
     glColor3d(0, .4 , 1);
     glTranslatef(earth.x, earth.y, earth.z);
-    glutSolidSphere(.4, 16, 16);
+    glutSolidSphere(earth.size, 16, 16);
     glPopMatrix();
 
     glPushMatrix();
     glColor3d(.5, .5, .5);
     glTranslatef(moon.x, moon.y, moon.z);
-    glutSolidSphere(.1, 10, 10);
+    glutSolidSphere(moon.size, 10, 10);
     glPopMatrix();
 
 
@@ -155,15 +168,16 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-        sun.z += .5;
-        earth.z += .5;
-        moon.z += .5;
-        planet_B.z += .5;
+        sun.change_scale(1.1);
+        earth.change_scale(1.1);
+        moon.change_scale(1.1);
+        planet_B.change_scale(1.1);       //double current scale
         break;
     case GLUT_KEY_DOWN:
-        sun.z -= .5;
-        earth.z -= .5;
-        planet_B.z -= .5;
+        sun.change_scale(.9);
+        earth.change_scale(.9);
+        moon.change_scale(.9);
+        planet_B.change_scale(.9);      //half current scale
         break;
    }
   glutPostRedisplay();
@@ -211,7 +225,7 @@ int main(int argc, char *argv[])
     glutInitWindowPosition(10,10);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-    glutCreateWindow("GLUT Shapes");
+    glutCreateWindow("GLUT Planets");
     init();
     glutReshapeFunc(resize);
     glutDisplayFunc(display);
