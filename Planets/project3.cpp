@@ -22,6 +22,7 @@ using namespace std;
 
 bool WireFrame= false;
 bool start = false;
+bool rings = false;
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -45,23 +46,9 @@ class planet{
             this->size = s;
         }
 
-        void rotate_relative(double rotation, double px, double pz);
-
         void change_scale(double new_scale);
 
 };
-
-void planet::rotate_relative(double rotation, double px, double pz){
-    x -= px;
-    z -= pz;
-    double old_x = x;
-    x = (x * cos(rotation) - z * sin(rotation));
-    z = (old_x * sin(rotation) + z * cos(rotation));
-
-    x += px;
-    z += pz;
-    return;
-}
 
 void planet::change_scale(double scale){
     size *= scale;
@@ -73,8 +60,11 @@ void planet::change_scale(double scale){
 //planets
 planet sun = planet(0, 0, 0, 1.0);
 planet earth = planet(3, 0, 0, .4);
-planet moon = planet(3.8, 0, 0, .1);
+planet moon = planet(.8, 0, 0, .1);
 planet planet_B = planet(5, 0, 0, .5);
+
+//vars
+double global_rot = 0.0;
 
 
 /* GLUT callback Handlers */
@@ -108,35 +98,43 @@ static void display(void)
 
     // your code here
     if (start){
-        planet_B.rotate_relative(.001, sun.x, sun.z);
         planet_B.rot += .02;
-        earth.rotate_relative(.0015, sun.x, sun.z);
-        moon.rotate_relative(.0015, sun.x, sun.z);
-        moon.rotate_relative(.001, earth.x, earth.z);
+        earth.rot += .04;
+        moon.rot += .04;
     }
+
+    //rotate all planets
+    glRotatef(10, 0, 0, 1);
+    glRotatef(global_rot, 0, 1, 0);
 
     //SUN
     glPushMatrix();
     glColor3d(1, .6, 0);
     glTranslatef(sun.x, sun.y, sun.z);
+    glRotatef(sun.rot, 0, 1, 0);
     glutSolidSphere(sun.size, 16, 16);
     glPopMatrix();
 
+    //PLANET B
     glPushMatrix();
     glColor3d(1, 0 , 0);
+    glRotatef(planet_B.rot, 0, 1, 0);
     glTranslatef(planet_B.x, planet_B.y, planet_B.z);
-    glRotatef(planet_B.rot, 1, 1, 0);
+    glRotatef(planet_B.rot, 1, .5, 0);
     glutSolidSphere(planet_B.size, 16, 16);
     glPopMatrix();
 
     glPushMatrix();
+    //EARTH
     glColor3d(0, .4 , 1);
+    glRotatef(earth.rot, 0, 1, 0);
     glTranslatef(earth.x, earth.y, earth.z);
     glutSolidSphere(earth.size, 16, 16);
-    glPopMatrix();
+    glutSolidTorus(1, .1, 4, 4);
 
-    glPushMatrix();
+    //MOON
     glColor3d(.5, .5, .5);
+    glRotatef(moon.rot, 0, 1, 0);
     glTranslatef(moon.x, moon.y, moon.z);
     glutSolidSphere(moon.size, 10, 10);
     glPopMatrix();
@@ -155,6 +153,9 @@ static void key(unsigned char key, int x, int y)
         case 'w':
             WireFrame = !WireFrame;
             break;
+        case 'r':
+            rings = !rings;
+            break;
         case 27 :
             break;
         case 'q':
@@ -168,16 +169,22 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-        sun.change_scale(1.1);
-        earth.change_scale(1.1);
-        moon.change_scale(1.1);
-        planet_B.change_scale(1.1);       //double current scale
+        sun.change_scale(1.05);
+        earth.change_scale(1.05);
+        moon.change_scale(1.05);
+        planet_B.change_scale(1.05);       //increase current scale
         break;
     case GLUT_KEY_DOWN:
-        sun.change_scale(.9);
-        earth.change_scale(.9);
-        moon.change_scale(.9);
-        planet_B.change_scale(.9);      //half current scale
+        sun.change_scale(.95);
+        earth.change_scale(.95);
+        moon.change_scale(.95);
+        planet_B.change_scale(.95);      //decrease current scale
+        break;
+    case GLUT_KEY_LEFT:
+        global_rot += 5;
+        break;
+    case GLUT_KEY_RIGHT:
+        global_rot -= 5;
         break;
    }
   glutPostRedisplay();
