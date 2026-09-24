@@ -59,15 +59,17 @@ void planet::change_scale(double scale){
 
 void draw_rings(double r, double points){
     glDisable(GL_LIGHTING);
-    double theta = 360/points;
+    double theta = (acos(-1)* 2)/points;
 
-    glBegin(GL_POINTS);
-    for (int i = 0; i < points; i++){
+    glBegin(GL_LINE_LOOP);
+    for (double i = 0; i < points; i++){
         float x = r * cosf(theta * i);
         float y = r * sinf(theta * i);
 
         glVertex3f(x, 0, y);
+        //printf("%f\n", x);
     }
+
     glEnd();
     glEnable(GL_LIGHTING);
 
@@ -126,8 +128,8 @@ static void display(void)
 
 
     if (rings){
-        draw_rings(planet_B.x, 480 * planet_B.size);
-        draw_rings(earth.x, 360 * earth.size);
+        draw_rings(planet_B.x, 50);
+        draw_rings(earth.x, 50);
     }
 
     //SUN
