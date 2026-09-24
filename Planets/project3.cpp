@@ -57,6 +57,22 @@ void planet::change_scale(double scale){
     z *= scale;
 }
 
+void draw_rings(double r, double points){
+    glDisable(GL_LIGHTING);
+    double theta = 360/points;
+
+    glBegin(GL_POINTS);
+    for (int i = 0; i < points; i++){
+        float x = r * cosf(theta * i);
+        float y = r * sinf(theta * i);
+
+        glVertex3f(x, 0, y);
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
+
+}
+
 //planets
 planet sun = planet(0, 0, 0, 1.0);
 planet earth = planet(3, 0, 0, .4);
@@ -106,6 +122,13 @@ static void display(void)
     //rotate all planets
     glRotatef(10, 0, 0, 1);
     glRotatef(global_rot, 0, 1, 0);
+    glTranslatef(0, 1, 0);
+
+
+    if (rings){
+        draw_rings(planet_B.x, 480 * planet_B.size);
+        draw_rings(earth.x, 360 * earth.size);
+    }
 
     //SUN
     glPushMatrix();
@@ -130,7 +153,6 @@ static void display(void)
     glRotatef(earth.rot, 0, 1, 0);
     glTranslatef(earth.x, earth.y, earth.z);
     glutSolidSphere(earth.size, 16, 16);
-    glutSolidTorus(1, .1, 4, 4);
 
     //MOON
     glColor3d(.5, .5, .5);

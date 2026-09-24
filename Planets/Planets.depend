@@ -13,3 +13,11 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
+1790273804 source:c:\users\johan\cs172\planets\project3.cpp
+	<string.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<stdlib.h>
+	<iostream>
+	<math.h>
+

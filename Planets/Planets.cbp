@@ -32,7 +32,7 @@
 			<Add library="gdi32" />
 			<Add directory="C:/Users/johan/CS172/common/lib" />
 		</Linker>
-		<Unit filename="project2.cpp" />
+		<Unit filename="project3.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
