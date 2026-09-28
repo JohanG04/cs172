@@ -46,17 +46,10 @@ class planet{
             this->size = s;
         }
 
-        void change_scale(double new_scale);
-
 };
 
-void planet::change_scale(double scale){
-    size *= scale;
-    x *= scale;
-    y *= scale;
-    z *= scale;
-}
 
+//Function to draw a circle with a given radius with given amt of points
 void draw_rings(double r, double points){
     glDisable(GL_LIGHTING);
     double theta = (acos(-1)* 2)/points;
@@ -75,7 +68,8 @@ void draw_rings(double r, double points){
 
 }
 
-//planets
+//Planets
+//Definitions with starting x,y,z coordinates, as well as sizes
 planet sun = planet(0, 0, 0, 1.0);
 planet earth = planet(3, 0, 0, .4);
 planet moon = planet(.8, 0, 0, .1);
@@ -83,6 +77,7 @@ planet planet_B = planet(5, 0, 0, .5);
 
 //vars
 double global_rot = 0.0;
+double global_scale = 1.0;
 
 
 /* GLUT callback Handlers */
@@ -116,18 +111,21 @@ static void display(void)
 
     // your code here
     if (start){
-        planet_B.rot += .02;
-        earth.rot += .04;
-        moon.rot += .04;
+        planet_B.rot += 1.0/220.0;        //220 days for one rotation around sun
+        earth.rot += 1.0/365.0;           //365 days for one rotation around sun
+        moon.rot += 1.0/27.5;           //27.5 days for one rotation around earth
     }
 
     //rotate all planets
     glRotatef(10, 0, 0, 1);
     glRotatef(global_rot, 0, 1, 0);
     glTranslatef(0, 1, 0);
+    glScalef(global_scale, global_scale, global_scale);
 
 
+    //if needed, draw rings paths for planets B and Earth
     if (rings){
+        glColor3d(.5, .5, .5);
         draw_rings(planet_B.x, 50);
         draw_rings(earth.x, 50);
     }
@@ -157,6 +155,13 @@ static void display(void)
     glutSolidSphere(earth.size, 16, 16);
 
     //MOON
+    /*
+    if(rings){
+        glColor3d(.5, .5, .5);
+        draw_rings(moon.x, 20);
+    }
+    */
+
     glColor3d(.5, .5, .5);
     glRotatef(moon.rot, 0, 1, 0);
     glTranslatef(moon.x, moon.y, moon.z);
@@ -193,16 +198,10 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-        sun.change_scale(1.05);
-        earth.change_scale(1.05);
-        moon.change_scale(1.05);
-        planet_B.change_scale(1.05);       //increase current scale
+        global_scale *= 1.25;
         break;
     case GLUT_KEY_DOWN:
-        sun.change_scale(.95);
-        earth.change_scale(.95);
-        moon.change_scale(.95);
-        planet_B.change_scale(.95);      //decrease current scale
+        global_scale /= 1.25;
         break;
     case GLUT_KEY_LEFT:
         global_rot += 5;
