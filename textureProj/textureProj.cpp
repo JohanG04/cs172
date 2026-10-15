@@ -1,3 +1,4 @@
+#include <SOIL.h>
 
 #include <string.h>
 
@@ -12,14 +13,14 @@
 
 #include <math.h>
 
-#include <SOIL.h>
 using namespace std;
 
 bool WireFrame= false;
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f,
+1.0f };
 const GLfloat light_position[] = { 2.0f, 5.0f, 5.0f, 0.0f };
 
 const GLfloat mat_ambient[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
@@ -30,7 +31,7 @@ const GLfloat high_shininess[] = { 100.0f };
 GLuint texID;
 /* GLUT callback Handlers */
 
-void textureLoader(char* fileName){
+void textureLoader(){
     glEnable(GL_TEXTURE_2D);
     glGenTextures(1, &texID);
 
@@ -40,7 +41,7 @@ void textureLoader(char* fileName){
     int width, height;
     unsigned char* image;
 
-    image = SOIL_load_image(fileName, &width, &height, 0, SOIL_LOAD_RGBA);
+    image = SOIL_load_image("images/t.jpg", &width, &height, 0, SOIL_LOAD_RGBA);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 
@@ -141,7 +142,7 @@ static void init(void)
     glEnable(GL_LIGHTING);
 
 
-    textureLoader("images/t.jpg");
+    textureLoader();
 }
 
 

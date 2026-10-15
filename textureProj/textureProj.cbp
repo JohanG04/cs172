@@ -21,17 +21,15 @@
 				<Option compiler="gcc-mingw32" />
 			</Target>
 		</Build>
-		<Compiler>
-			<Add directory="C:/Users/johan/CS172/common/include" />
-		</Compiler>
 		<Linker>
+			<Add option="-lfreeglut" />
+			<Add option="-lopengl32" />
 			<Add library="../common/lib/libSOIL.a" />
-			<Add library="freeglut" />
-			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="winmm" />
 			<Add library="gdi32" />
-			<Add directory="C:/Users/johan/CS172/common/lib" />
+			<Add library="freeglut" />
+			<Add library="opengl32" />
 		</Linker>
 		<Unit filename="textureProj.cpp" />
 		<Extensions />
