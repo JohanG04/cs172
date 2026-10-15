@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1792084932 source:c:\users\johan\cs172\skybox\skybox.cpp
+	<SOIL.h>
+	<string.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<stdlib.h>
+	<iostream>
+	<math.h>
+
+1791390779 c:\users\johan\cs172\common\include\soil.h
+
+1788545684 c:\users\johan\cs172\common\include\gl\glut.h
+	<windows.h>
+	<stdlib.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
