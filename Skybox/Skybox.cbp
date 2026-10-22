@@ -25,6 +25,7 @@
 			<Add directory="C:/Users/johan/CS172/common/include" />
 		</Compiler>
 		<Linker>
+			<Add library="../common/lib/libSOIL.a" />
 			<Add library="freeglut" />
 			<Add library="opengl32" />
 			<Add library="glu32" />
@@ -32,7 +33,7 @@
 			<Add library="gdi32" />
 			<Add directory="C:/Users/johan/CS172/common/lib" />
 		</Linker>
-		<Unit filename="main.cpp" />
+		<Unit filename="Skybox.cpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
