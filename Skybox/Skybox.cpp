@@ -8,6 +8,7 @@
 #include <GL/glut.h>
 #endif
 
+#include <GL/gl.h>
 #include <GL/glext.h>
 #include <stdlib.h>
 #include <iostream>
@@ -26,8 +27,7 @@ bool WireFrame= false;
 
 const GLfloat light_ambient[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
 const GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f,
-1.0f };
+const GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat light_position[] = { 2.0f, 5.0f, 5.0f, 0.0f };
 
 const GLfloat mat_ambient[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
@@ -36,10 +36,8 @@ const GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
 //Amount of Images loaded with IDs
-GLuint* texID = new GLuint[10];
+GLuint* texID = new GLuint[IMAGE_LAST];
 
-//texture names
-unsigned int cubeTexture;
 
 struct vector{
     float x = 0.0;
@@ -48,16 +46,28 @@ struct vector{
 };
 
 //MODEL
-float model_rot_speed = 5;
+float model_rot_speed = 5.0;
 vector model_rot;
+
+//SKYBOX
+float skybox_rot_speed = 1.0;
+vector skybox_rot;
+
+//SCENE
+float scene_zoom = 1.0;
+float zoom_amount = 1.1;
+
+//CAMERA
+float cam_speed = .5;
+vector camera_pos;
 
 
 /* GLUT callback Handlers */
 
 void textureLoader(char* filename, unsigned int id){
     glEnable(GL_TEXTURE_2D);
-    glGenTextures(1, &id);
-    glBindTexture(GL_TEXTURE_2D, id);
+    glGenTextures(1, &texID[id]);
+    glBindTexture(GL_TEXTURE_2D, texID[id]);
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
@@ -87,11 +97,13 @@ void cubemapLoader(int id){
     glBindTexture(GL_TEXTURE_CUBE_MAP, texID[id]);
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    SOIL_load_OGL_cubemap("images/right.jpg", "images/left.jpg", "images/top.jpg", "images/bottom.jpg", "images/front.jpg", "images/back.jpg", 0, texID[id], SOIL_LOAD_RGB);
+    texID[id] = SOIL_load_OGL_cubemap("images/right.jpg", "images/left.jpg", "images/top.jpg", "images/bottom.jpg", "images/front.jpg", "images/back.jpg", 0, 0, SOIL_LOAD_RGB);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 static void resize(int width, int height)
@@ -108,47 +120,97 @@ static void resize(int width, int height)
 	gluPerspective (50.0f,1,0.1f, 100.0f);
  }
 
- /**DRAW A CUBE WITH TEXTURE COORDINATES**/
- static void cube(float size){
+ /**DRAW A SKYBOX WITH CUBEMAP DIRECTION COORDS**/
+ static void skybox(float size){
      glBegin(GL_QUADS);
-    glNormal3f(1.0f, 0.0f, 0.0f); // Right face
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, -size, -size); // Bottom Right Of The Texture and Quad
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, size, size); // Top Left Of The Texture and Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
-    glNormal3f(-1.0f, 0.0f, 0.0f); // Left Face
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, -size); // Bottom Left Of The Texture and Quad
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, size); // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
-    glNormal3f(0.0f, 1.0f, 0.0f); // Normals Top Face
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, size, size); // Bottom Left Of The Texture and Quad
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, size, size); // Bottom Right Of The Texture and Quad
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
-    glNormal3f(0.0f, -1.0f, 0.0f); // Bottom Face
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, -size, -size); // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, -size, -size); // Top Left Of The Texture and Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
-     glNormal3f(0.0f, 0.0f, 1.0f); // Normal Front Face
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Left Of The Texture and Quad
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Right Of The Texture and Quad
-        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, size); // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, size); // Top Left Of The Texture and Quad
     glNormal3f(0.0f, 0.0f, -1.0f); // Normal Back Face
-        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, -size); // Bottom Right Of The Texture and Quad
-        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, -size); // Top Right Of The Texture and Quad
-        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, size, -size); // Top Left Of The Texture and Quad
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, -size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(-1.0f, 1.0f, -1.0f); glVertex3f(-size, size, -size); // Top Right Of The Texture and Quad
+        glTexCoord3f(-1.0f, -1.0f, -1.0f); glVertex3f(-size, -size, -size); // Bottom Right Of The Texture and Quad
+        glTexCoord3f(1.0f, -1.0f, -1.0f); glVertex3f( size, -size, -size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, -1.0f); glVertex3f( size, size, -size); // Top Left Of The Texture and Quad
+    glNormal3f(-1.0f, 0.0f, 0.0f); // Left Face
+        glTexCoord3f(-1.0f, -1.0f, 1.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord3f(-1.0f, -1.0f, -1.0f); glVertex3f(-size, -size, -size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(-1.0f, 1.0f, -1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
+        glTexCoord3f(-1.0f, 1.0f, 1.0f); glVertex3f(-size, size, size); // Top Right Of The Texture and Quad
+    glNormal3f(1.0f, 0.0f, 0.0f); // Right face
+        glTexCoord3f(1.0f, -1.0f, -1.0f); glVertex3f( size, -size, -size); // Bottom Right Of The Texture and Quad
+        glTexCoord3f(1.0f, -1.0f, 1.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, 1.0f); glVertex3f( size, size, size); // Top Left Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, -1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
+     glNormal3f(0.0f, 0.0f, 1.0f); // Normal Front Face
+        glTexCoord3f(-1.0f, -1.0f, 1.0f); glVertex3f(-size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(-1.0f, 1.0f, 1.0f); glVertex3f(-size, size, size); // Top Left Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, 1.0f); glVertex3f( size, size, size); // Top Right Of The Texture and Quad
+        glTexCoord3f(1.0f, -1.0f, 1.0f); glVertex3f( size, -size, size); // Bottom Right Of The Texture and Quad
+    glNormal3f(0.0f, 1.0f, 0.0f); // Normals Top Face
+        glTexCoord3f(-1.0f, 1.0f, -1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, -1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
+        glTexCoord3f(1.0f, 1.0f, 1.0f); glVertex3f( size, size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord3f(-1.0f, 1.0f, 1.0f); glVertex3f(-size, size, size); // Bottom Left Of The Texture and Quad
+    glNormal3f(0.0f, -1.0f, 0.0f); // Bottom Face
+        glTexCoord3f(-1.0f, -1.0f, -1.0f); glVertex3f(-size, -size, -size); // Top Right Of The Texture and Quad
+        glTexCoord3f(-1.0f,-1.0f, 1.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord3f(1.0f, -1.0f, 1.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord3f(1.0f, -1.0f, -1.0f); glVertex3f( size, -size, -size); // Top Left Of The Texture and Quad
      glEnd();
  }
 
+ /**DRAW A CUBE WITH 2D TEXTURE COORDINATES**/
+  static void cube(float size){
+     glBegin(GL_QUADS);
+    glNormal3f(0.0f, 0.0f, -1.0f); // Normal Back Face
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, -size); // Top Right Of The Texture and Quad
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, -size); // Bottom Right Of The Texture and Quad
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, -size); // Bottom Left Of The Texture and Quad
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, size, -size); // Top Left Of The Texture and Quad
+    glNormal3f(-1.0f, 0.0f, 0.0f); // Left Face
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, -size); // Bottom Left Of The Texture and Quad
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, size, size); // Top Right Of The Texture and Quad
+    glNormal3f(1.0f, 0.0f, 0.0f); // Right face
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, -size, -size); // Bottom Right Of The Texture and Quad
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, size, size); // Top Left Of The Texture and Quad
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
+     glNormal3f(0.0f, 0.0f, 1.0f); // Normal Front Face
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, size); // Top Left Of The Texture and Quad
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, size); // Top Right Of The Texture and Quad
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Right Of The Texture and Quad
+    glNormal3f(0.0f, 1.0f, 0.0f); // Normals Top Face
+        glTexCoord2f(0.0f, 1.0f); glVertex3f(-size, size, -size); // Top Left Of The Texture and Quad
+        glTexCoord2f(1.0f, 1.0f); glVertex3f( size, size, -size); // Top Right Of The Texture and Quad
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( size, size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-size, size, size); // Bottom Left Of The Texture and Quad
+    glNormal3f(0.0f, -1.0f, 0.0f); // Bottom Face
+        glTexCoord2f(1.0f, 1.0f); glVertex3f(-size, -size, -size); // Top Right Of The Texture and Quad
+        glTexCoord2f(1.0f, 0.0f); glVertex3f(-size, -size, size); // Bottom Right Of The Texture and Quad
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( size, -size, size); // Bottom Left Of The Texture and Quad
+        glTexCoord2f(0.0f, 1.0f); glVertex3f( size, -size, -size); // Top Left Of The Texture and Quad
+     glEnd();
+ }
+
+/**DISPLAY**/
 static void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    //Skybox
+    glRotatef(skybox_rot.x, 1, 0, 0);
+    glRotatef(skybox_rot.y, 0, 1, 0);
+
+    glPushMatrix();
+        glEnable(GL_TEXTURE_CUBE_MAP);
+        glDepthMask(GL_FALSE);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, texID[CUBEMAP]);
+        skybox(1);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_TEXTURE_CUBE_MAP);
+    glPopMatrix();
 
     gluLookAt(0,0,10,0.0,0.0,0.0,0.0,1.0,0.0);
 
@@ -157,15 +219,23 @@ static void display(void)
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);		//Toggle WIRE FRAME
 
-    // your code here
+
+    // Move Camera
+    glTranslatef(camera_pos.x, camera_pos.y, camera_pos.z);
+
+    // Zoom Scene
+    glScalef(scene_zoom, scene_zoom, scene_zoom);
+
+    //Cube
     glPushMatrix();
-    //glDepthMask(GL_FALSE);
-    glRotatef(model_rot.x, 1, 0, 0);
-    glRotatef(model_rot.y, 0, 1, 0);
-    glBindTexture(GL_TEXTURE_2D, cubeTexture);
-    cube(2);
-    //glDepthMask(GL_TRUE);
+        glEnable(GL_TEXTURE_2D);
+        glRotatef(model_rot.x, 1, 0, 0);
+        glRotatef(model_rot.y, 0, 1, 0);
+        glBindTexture(GL_TEXTURE_2D, texID[ROCKWALL]);
+        cube(1);
+        glDisable(GL_TEXTURE_2D);
     glPopMatrix();
+
 
     glutSwapBuffers();
 }
@@ -185,6 +255,41 @@ static void key(unsigned char key, int x, int y)
             break;
         case 'd':
             model_rot.y = int(model_rot.y + model_rot_speed) % 360;
+            break;
+        case 'i':
+            camera_pos.y -= cam_speed;
+            break;
+        case 'j':
+            camera_pos.x += cam_speed;
+            break;
+        case 'k':
+            camera_pos.y += cam_speed;
+            break;
+        case 'l':
+            camera_pos.x -= cam_speed;
+            break;
+        case 'o':
+            camera_pos.x = 0.0f;
+            camera_pos.y = 0.0f;
+            camera_pos.z = 0.0f;
+        case 'z':
+            scene_zoom *= zoom_amount;
+            break;
+        case 'x':
+            scene_zoom /= zoom_amount;
+            break;
+        case ' ':
+            //RESET ALL
+            model_rot.x = 0.0f;
+            model_rot.y = 0.0f;
+            skybox_rot.x = 0.0f;
+            skybox_rot.y = 0.0f;
+
+            camera_pos.x  = 0.0f;
+            camera_pos.y = 0.0f;
+
+            scene_zoom = 1.0;
+            break;
         case 27 :
             break;
         case 'q':
@@ -198,7 +303,17 @@ void Specialkeys(int key, int x, int y)
     switch(key)
     {
     case GLUT_KEY_UP:
-    break;
+        skybox_rot.x = int(skybox_rot.x - skybox_rot_speed) % 360;
+        break;
+    case GLUT_KEY_LEFT:
+        skybox_rot.y = int(skybox_rot.y - skybox_rot_speed) % 360;
+        break;
+    case GLUT_KEY_DOWN:
+        skybox_rot.x = int(skybox_rot.x + skybox_rot_speed) % 360;
+        break;
+    case GLUT_KEY_RIGHT:
+        skybox_rot.y = int(skybox_rot.y + skybox_rot_speed) % 360;
+        break;
    }
   glutPostRedisplay();
 }
@@ -230,11 +345,11 @@ static void init(void)
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
 
-    glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHT0);
     glEnable(GL_NORMALIZE);
-    glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHTING);
 
-    textureLoader("images/rockwall.jpg", cubeTexture);
+    textureLoader("images/rockwall.jpg", ROCKWALL);
     cubemapLoader(CUBEMAP);
 
     //printf("%i", CUBEMAP);

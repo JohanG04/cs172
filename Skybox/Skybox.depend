@@ -337,3 +337,14 @@
 1512587389 c:\mingw\include\math.h
 	<_mingw.h>
 
+1792811193 source:d:\cs172\skybox\skybox.cpp
+	<SOIL.h>
+	<string.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<GL/gl.h>
+	<GL/glext.h>
+	<stdlib.h>
+	<iostream>
+	<math.h>
+
