@@ -1,4 +1,12 @@
-#include <SOIL.h>
+/**
+    Name: Johan Gonzalez
+    ID: 301301300
+    Class: CSCI 172
+    Project Name: Project #4 - Skybox
+**/
+
+
+include <SOIL.h>
 
 #include <string.h>
 
