@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include <math.h>
 
@@ -73,23 +74,81 @@ vector camera_pos;
 //Models Object
 
 class model{
-    vector* verticies;
+    private:
+        vector* verticies;
+        vector* faces;
+
+    public:
+        int vcount = 0;
+        int ncount = 0;
+        void insert_vertex(float x, float y, float z);
+        void insert_normal(float x, float y, float z);
+
+        void print_v(){for (int i = 0; i < vcount; i++){printf("%f, %f, %f\n", verticies[i].x, verticies[i].y, verticies[i].z);}}
 };
+
+void model::insert_vertex(float x, float y, float z){
+    printf("%f, %f, %f\n", x, y, z);
+    //verticies[vcount].x = x;
+    //verticies[vcount].y = y;
+    //verticies[vcount].z = z;
+    vcount ++;
+}
+
+void model::insert_normal(float x, float y, float z){
+    printf("%f, %f, %f\n", x, y, z);
+    //verticies[vcount].x = x;
+    //verticies[vcount].y = y;
+    //verticies[vcount].z = z;
+    ncount ++;
+}
 
 /* GLUT callback Handlers */
 
-void modelLoader(char* filename){
+model modelLoader(char* filename){
+    model newModel;
     ifstream myObject;
     string line;
-    model newModel;
 
     myObject.open(filename, ifstream::in);
 
     while(getline(myObject, line)){
+        stringstream ss(line);
+        string res;
+        char delim = '/';
+
+        int vcount = 0;
+
+        //read first segment containing information type "v" "vn"
+        ss >> res;
+
+        if (res == "v"){
+            float x, y, z;
+            ss >> x;
+            ss >> y;
+            ss >> z;
+            newModel.insert_vertex(x, y, z);
+        }
+        else if (res == "vn"){
+            float x, y, z;
+            ss >> x;
+            ss >> y;
+            ss >> z;
+
+            newModel.insert_normal(x, y, z);
+        }
+        else if (res == "vt"){
+
+        }
+        else if (res == "f"){
+            stringstream
+        }
 
     }
 
     myObject.close();
+    //newModel.print_v();
+    return newModel;
 }
 
 void textureLoader(char* filename, unsigned int id){
@@ -240,7 +299,7 @@ static void display(void)
         glDisable(GL_TEXTURE_CUBE_MAP);
     glPopMatrix();
 
-    gluLookAt(0,0,10,0.0,0.0,0.0,0.0,1.0,0.0);
+    gluLookAt(0, 0, 10, 0.0, 0.0,0.0,0.0, 1.0,0.0);
 
     if(WireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);		//Draw Our Mesh In Wireframe Mesh
@@ -380,7 +439,7 @@ static void init(void)
     textureLoader("images/rockwall.jpg", ROCKWALL);
     cubemapLoader(CUBEMAP);
 
-    modelLoader("objects/cube.obj");
+    model myCube = modelLoader("objects/cube.obj");
 
     //printf("%i", CUBEMAP);
 
