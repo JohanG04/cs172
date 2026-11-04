@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1793817180 source:c:\users\johan\cs172\homework02\homework02.cpp
+	<string.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<stdlib.h>
+	<iostream>
+	<math.h>
+
+1788545684 c:\users\johan\cs172\common\include\gl\glut.h
+	<windows.h>
+	<stdlib.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
