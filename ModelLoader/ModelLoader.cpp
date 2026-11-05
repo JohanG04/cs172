@@ -49,7 +49,7 @@ const GLfloat high_shininess[] = { 100.0f };
 GLuint* texID = new GLuint[IMAGE_LAST];
 
 
-struct vector{
+struct vector3D{
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
@@ -57,11 +57,11 @@ struct vector{
 
 //MODEL
 float model_rot_speed = 5.0;
-vector model_rot;
+vector3D model_rot;
 
 //SKYBOX
 float skybox_rot_speed = 1.0;
-vector skybox_rot;
+vector3D skybox_rot;
 
 //SCENE
 float scene_zoom = 1.0;
@@ -69,65 +69,113 @@ float zoom_amount = 1.1;
 
 //CAMERA
 float cam_speed = .5;
-vector camera_pos;
+vector3D camera_pos;
 
 //Models Object
 
 class model{
     private:
-        vector* verticies;
-        vector* faces;
+        vector3D* verticies;
+        vector3D* textures;
+        vector3D* normals;
+        vector3D* faces;
 
     public:
         int vcount = 0;
         int ncount = 0;
+        int tcount = 0;
+        int fcount = 0;
         void insert_vertex(float x, float y, float z);
         void insert_normal(float x, float y, float z);
+        int v, t, n, f;
 
+        model(int vs, int ts, int ns, int fs){
+            v = 0;
+            n = 0;
+            t = 0;
+            f = 0;
+            vcount = vs;
+            tcount = ts;
+            ncount = ns;
+            fcount = fs;
+            verticies = new vector3D[vcount];
+            textures = new vector3D[tcount];
+            normals = new vector3D[ncount];
+        }
         void print_v(){for (int i = 0; i < vcount; i++){printf("%f, %f, %f\n", verticies[i].x, verticies[i].y, verticies[i].z);}}
 };
 
 void model::insert_vertex(float x, float y, float z){
-    printf("%f, %f, %f\n", x, y, z);
-    //verticies[vcount].x = x;
-    //verticies[vcount].y = y;
-    //verticies[vcount].z = z;
-    vcount ++;
+    //printf("%f, %f, %f\n", x, y, z);
+    verticies[v].x = x;
+    verticies[v].y = y;
+    verticies[v].z = z;
+    v ++;
 }
 
 void model::insert_normal(float x, float y, float z){
-    printf("%f, %f, %f\n", x, y, z);
-    //verticies[vcount].x = x;
-    //verticies[vcount].y = y;
-    //verticies[vcount].z = z;
-    ncount ++;
+    //printf("%f, %f, %f\n", x, y, z);
+    normals[n].x = x;
+    normals[n].y = y;
+    normals[n].z = z;
+    n ++;
 }
 
 /* GLUT callback Handlers */
 
+//Creates and returns a new model object with arrays of verticies, texture coords, normals and faces read from a .obj file.
 model modelLoader(char* filename){
-    model newModel;
+    model* newModel;
     ifstream myObject;
     string line;
 
     myObject.open(filename, ifstream::in);
 
+    //iterate over beginning of file until reaching a line with either 'd' to get counts or 'v'
+    do{
+        getline(myObject, line);
+    }while(line[0] != 'd' && line[0] != 'v');
+
+    stringstream ss(line);
+    string type;
+    ss >> type;
+    if (type == "d"){    //If counts are available in file, use for model
+        int vcount, tcount, ncount, fcount;
+        ss >> vcount;
+        ss >> tcount;
+        ss >> ncount;
+        if (!(ss >> fcount)){   //If stringstream is bad, there are no texture coordinates. Fix normal and face counts and set texture count to 0.
+            fcount = ncount;
+            ncount = tcount;
+            tcount = 0;
+        }
+
+
+        printf("%i, %i, %i, %i\n", vcount, tcount, ncount, fcount); //Print all count numbers for correctness
+        newModel = new model(vcount, tcount, ncount, fcount);
+
+    }
+    else{               //if counts not in file, create counts
+        newModel = new model(10, 0, 10, 10);
+    }
+
+    myObject.clear();
+    myObject.seekg(0, ios::beg);
+
     while(getline(myObject, line)){
         stringstream ss(line);
         string res;
-        char delim = '/';
-
-        int vcount = 0;
 
         //read first segment containing information type "v" "vn"
         ss >> res;
+
 
         if (res == "v"){
             float x, y, z;
             ss >> x;
             ss >> y;
             ss >> z;
-            newModel.insert_vertex(x, y, z);
+            newModel->insert_vertex(x, y, z);
         }
         else if (res == "vn"){
             float x, y, z;
@@ -135,20 +183,20 @@ model modelLoader(char* filename){
             ss >> y;
             ss >> z;
 
-            newModel.insert_normal(x, y, z);
+            newModel->insert_normal(x, y, z);
         }
         else if (res == "vt"){
 
         }
         else if (res == "f"){
-            stringstream
+
         }
 
     }
 
     myObject.close();
     //newModel.print_v();
-    return newModel;
+    return *newModel;
 }
 
 void textureLoader(char* filename, unsigned int id){
@@ -439,7 +487,8 @@ static void init(void)
     textureLoader("images/rockwall.jpg", ROCKWALL);
     cubemapLoader(CUBEMAP);
 
-    model myCube = modelLoader("objects/cube.obj");
+    model myCube = modelLoader("objects/cow.obj");
+    //model ate = modelLoader("objects/ven-2.obj");
 
     //printf("%i", CUBEMAP);
 
